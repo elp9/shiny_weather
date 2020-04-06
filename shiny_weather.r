@@ -29,19 +29,19 @@ prawe$location <- "Fondi"
 
 ##Reshape the value and convert to SI units
 dgs <- rbind.data.frame(dawe,cuwe,prawe)
-names(dgs) <- c("date","avgt","maxW","mint","maxt","prcp","location")
+names(dgs) <- c("date","avgt","maxW","maxt","mint","prcp","location")
 
 dgs$date <- as.Date(as.character(dgs$date),"%Y%m%d")
 dgs$avgt <- round((dgs$avgt-32)/9*5,1)
-dgs$mint[which(dgs$mint%in%"9999.9")] <- 0
-dgs$maxt[which(dgs$maxt%in%"9999.9")] <- 0
-dgs$mint <- round((as.numeric(dgs$mint)-32)/9*5,1)
-dgs$maxt <- round((as.numeric(dgs$maxt)-32)/9*5,1)
-dgs$maxW[which(dgs$maxW%in%"999.9")] <- 0
+dgs$mint[which(dgs$mint%in%"9999.9")] <- NA
+dgs$maxt[which(dgs$maxt%in%"9999.9")] <- NA
+dgs$mint <- round((as.numeric(gsub("[\\*]","",as.character(dgs$mint)))-32)/9*5,1)
+dgs$maxt <- round((as.numeric(gsub("[\\*]","",as.character(dgs$maxt)))-32)/9*5,1)
 dgs$maxW <- round(dgs$maxW*3.6,1)
-dgs$prcp[which(dgs$prcp%in%"99.99")] <- 0
+dgs$prcp[which(dgs$prcp%in%"99.99")] <- NA
 dgs$prcp <- round(as.numeric(gsub("[A-Z]","",dgs$prcp))*25.4,2)
 
+###Shiny
 ## Graphical interface
 # Define UI for miles per gallon app ----
 ui <- fluidPage(
@@ -56,9 +56,12 @@ ui <- fluidPage(
 		sidebarPanel(
 
       # Input: Selector for variable to plot against mpg ----
-			selectInput("yvar", "Variable:",
-				c("temperature" = "avgt",
-					"precipitation" = "prcp"))
+			selectInput(inputId="yvar", label="Variable:",
+				choices=list(
+					'temperature' = list("mint","avgt","maxt"),
+					'precipitation' = list("prcp")),
+				selected=list("mint","avgt","maxt"),
+				multiple=T)
 			),
 
     # Main panel for displaying outputs ----
@@ -83,9 +86,13 @@ server <- function(input, output) {
 	})
 
 	output$weplot <- renderPlot({
-		g1<-ggplot(dgs[,c(var(),"date","location")],aes(x=date,y=get(var()),col=location)) +
-		geom_line()
-		print(g1) 
+		dgs1<-dgs[,c(var(),"date","location")]
+		dgs2<-melt(dgs1,id.vars=c("date","location"))
+
+		g2<-ggplot(dgs2,aes(x=date,y=value,col=location)) +
+		geom_line() +
+		facet_wrap(~variable,ncol=1)
+		print(g2) 
 	}
 	)
 }
