@@ -41,13 +41,18 @@ dgs$maxW <- round(dgs$maxW*3.6,1)
 dgs$prcp[which(dgs$prcp%in%"99.99")] <- NA
 dgs$prcp <- round(as.numeric(gsub("[A-Z]","",dgs$prcp))*25.4,2)
 
+names(dgs)[names(dgs) == "mint"] <-"Minimum Temperature (ºC)"
+names(dgs)[names(dgs) == "avgt"] <-"Average Temperature (ºC)"
+names(dgs)[names(dgs) == "maxt"] <-"Maximum Temperature (ºC)"
+names(dgs)[names(dgs) == "prcp"] <- "Precipitation (mm)"           
+
 ###Shiny
 ## Graphical interface
 # Define UI for miles per gallon app ----
 ui <- fluidPage(
 
   # App title ----
-	titlePanel("Compare the weather"),
+	titlePanel("Compare the Weather 2020"),
 
   # Sidebar layout with input and output definitions ----
 	sidebarLayout(
@@ -58,9 +63,9 @@ ui <- fluidPage(
       # Input: Selector for variable to plot against mpg ----
 			selectInput(inputId="yvar", label="Variable:",
 				choices=list(
-					'temperature' = list("mint","avgt","maxt"),
-					'precipitation' = list("prcp")),
-				selected=list("mint","avgt","maxt"),
+					'Temperature/Temperatura' = list("Minimum Temperature (ºC)","Average Temperature (ºC)","Maximum Temperature (ºC)"),
+					'Precipitation/Precipitazione' = list("Precipitation (mm)")),
+				selected=list("Minimum Temperature (ºC)","Average Temperature (ºC)","Maximum Temperature (ºC)"),
 				multiple=T)
 			),
 
@@ -88,11 +93,22 @@ server <- function(input, output) {
 	output$weplot <- renderPlot({
 		dgs1<-dgs[,c(var(),"date","location")]
 		dgs2<-melt(dgs1,id.vars=c("date","location"))
-
+		
 		g2<-ggplot(dgs2,aes(x=date,y=value,col=location)) +
 		geom_line() +
-		facet_wrap(~variable,ncol=1)
-		print(g2) 
+		facet_wrap(~variable,ncol=1) +
+		xlab("Date") +
+		ylab("Value") +
+		theme(legend.title=element_blank(), 
+		      text = element_text(size=22), 
+		      legend.key = element_rect(fill='white'), 
+		      axis.text=element_text(size=18),
+		      axis.title=element_text(size=20,face="bold"),
+		      panel.grid.major = element_line(colour="gray80"),
+		      panel.background = element_rect(fill = 'white'))+
+		      scale_color_manual(values = c("orange1","forestgreen","dodgerblue3")) 
+		print(g2)
+		
 	}
 	)
 }
