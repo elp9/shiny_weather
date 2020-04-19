@@ -1,0 +1,12 @@
+name: shiny_weather
+title: shiny_weather
+username:
+account: elp9
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2147045
+bundleId: 3036025
+url: https://elp9.shinyapps.io/shiny_weather/
+when: 1587335017.8602
+asMultiple: FALSE
+asStatic: FALSE
