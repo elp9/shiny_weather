@@ -5,6 +5,7 @@ library(ggplot2)
 library(reshape)
 
 ##Preprocessing
+######################
 ##Dowload the data from NOAA weather station network
 #Davis weather station
 if(!file.exists("/tmp/davis_ws.gz")){
@@ -40,10 +41,25 @@ dgs$maxt <- round((as.numeric(gsub("[\\*]","",as.character(dgs$maxt)))-32)/9*5,1
 dgs$maxW <- round(dgs$maxW*3.6,1)
 dgs$prcp[which(dgs$prcp%in%"99.99")] <- NA
 dgs$prcp <- round(as.numeric(gsub("[A-Z]","",dgs$prcp))*25.4,2)
+###################
 
-names(dgs)[names(dgs) == "mint"] <-"Minimum Temperature (ºC)"
-names(dgs)[names(dgs) == "avgt"] <-"Average Temperature (ºC)"
-names(dgs)[names(dgs) == "maxt"] <-"Maximum Temperature (ºC)"
+###################
+#Derive historical statistics
+##Yesterday
+yesterday <- as.Date(format(Sys.time(), '%Y-%m-%d'))-1
+lastweek <- seq(yesterday-7,yesterday,"1 days")
+
+#Yesterday data
+datayes <- dgs[which(dgs$date%in%yesterday),]
+#Last week data
+tempw <- dgs[which(dgs$date%in%lastweek),]
+datalastw <- aggregate(.~location,tempw[,-c(1)],"mean")
+##################
+
+#Pretty names
+names(dgs)[names(dgs) == "mint"] <- "Minimum Temperature (ºC)"
+names(dgs)[names(dgs) == "avgt"] <- "Average Temperature (ºC)"
+names(dgs)[names(dgs) == "maxt"] <- "Maximum Temperature (ºC)"
 names(dgs)[names(dgs) == "prcp"] <- "Precipitation (mm)"           
 
 ###Shiny
