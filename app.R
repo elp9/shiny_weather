@@ -3,6 +3,7 @@
 library(shiny)
 library(ggplot2)
 library(reshape)
+library(Rmisc)
 
 #####################################
 ##Preprocessing
@@ -83,8 +84,9 @@ ui <- fluidPage(
 			selectInput(inputId="yvar", label="Variable:",
 				choices=list(
 					'Temperature/Temperatura' = list("Minimum Temperature (ºC)","Average Temperature (ºC)","Maximum Temperature (ºC)"),
-					'Precipitation/Precipitazione' = list("Precipitation (mm)")),
-				selected=list("Minimum Temperature (ºC)","Average Temperature (ºC)","Maximum Temperature (ºC)","Maximum wind speed (m/s)"),
+					'Precipitation/Precipitazione' = list("Precipitation (mm)"),
+					'Wind speed/Velocità del vento' = list("Maximum wind speed (m/s)")),
+				selected=list("Average Temperature (ºC)"),
 				multiple=T)
 			),
 
@@ -92,7 +94,7 @@ ui <- fluidPage(
 		mainPanel(
 
       # Output: Plot of the requested variable against mpg ----
-			plotOutput("ts",height="1400px")
+			plotOutput("ts",height="2400px")
 
 			)
 		)
@@ -119,22 +121,34 @@ server.plot <- function(input, output) {
 		xlab("Date") +
 		ylab("Value") +
 		theme(legend.title=element_blank(), 
-			text = element_text(size=22), 
+			text = element_text(size=22, colour="black"),
+			plot.title = element_text(face="bold", colour="black", size=28,hjust = 0.5),
+			strip.text.x = element_text(size = 18, color = "black"),
 			legend.key = element_rect(fill='white'), 
-			axis.text=element_text(size=18),
-			axis.title=element_text(size=20,face="bold"),
+			axis.text=element_text(size=18, colour="black"),
+			axis.title=element_text(size=20,face="bold", colour="black"),
 			panel.grid.major = element_line(colour="gray80"),
 			panel.background = element_rect(fill = 'white'))+
 		scale_color_manual(values = c("orange1","forestgreen","dodgerblue3"))
 
 		p.lw <- ggplot(df_ls2,aes(x=week, y=day, fill = value)) + 
 		geom_tile(colour = "white") + 
-		geom_text(aes(label = value), size=10) +
-		facet_grid(~location) + 
+		geom_text(aes(label = value), size=6, colour="black") +
+		facet_grid(variable~location) + 
 		scale_fill_gradient(low="yellow", high="red") +
-		labs(x="Week of Month", y=NULL)
-
-		mgg <- multiplot(p.ts, p.lw, cols=1, rows=2)
+		labs(x="Julian Week", y=NULL) +
+		theme(legend.title=element_blank(), 
+		        text = element_text(size=22, colour="black"), 
+		        plot.title = element_text(face="bold", colour="black", size=28,hjust = 0.5),
+		        strip.text.x = element_text(size = 18, color = "black"),
+		        strip.text.y = element_text(size = 15, color = "black"),
+		        legend.key = element_rect(fill='white'), 
+		        axis.text=element_text(size=18, colour="black"),
+		        axis.title=element_text(size=20,face="bold", colour="black"),
+		        panel.grid.major = element_line(colour="gray80"),
+		        panel.background = element_rect(fill = 'white'))
+	
+		mgg <- multiplot(p.ts+ggtitle("Daily Data for 2020"), p.lw+ggtitle("Last 7 Days"), cols=1, rows=2)
 		print(mgg)
 	})
 }
